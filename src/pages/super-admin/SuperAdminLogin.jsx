@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Mail, Lock, ArrowRight, AlertCircle, Sparkles } from 'lucide-react';
 import api from '../../services/api';
@@ -10,6 +10,14 @@ export default function SuperAdminLogin() {
   const [password, setPassword] = useState('SuperAdmin@123');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // If already logged in, redirect directly to super admin dashboard
+  useEffect(() => {
+    const token = localStorage.getItem('saas_token');
+    if (token) {
+      navigate('/super-admin', { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
