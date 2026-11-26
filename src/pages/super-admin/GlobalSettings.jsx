@@ -9,7 +9,6 @@ import {
   Save,
   RefreshCw,
   Power,
-  ShieldAlert,
 } from 'lucide-react';
 import api from '../../services/api';
 import { toastSuccess, toastError } from '../../utils/alerts';
@@ -24,7 +23,6 @@ export default function GlobalSettings() {
     isWhatsAppGloballyEnabled: true,
     smsDisabledNotice: 'SMS service is temporarily paused by Super Admin for maintenance.',
     whatsAppDisabledNotice: 'WhatsApp messaging is temporarily paused by Super Admin for maintenance.',
-    maintenanceMode: false,
   });
 
   const fetchSettings = async () => {
@@ -253,28 +251,6 @@ export default function GlobalSettings() {
                   </p>
                 )}
               </div>
-            </div>
-
-            {/* Platform Emergency Maintenance Switch */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-slate-100 text-slate-600">
-                  <ShieldAlert className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-slate-900">Platform Emergency Maintenance Mode</h3>
-                  <p className="text-[11px] text-slate-500">Put SaaS APIs in read-only maintenance mode.</p>
-                </div>
-              </div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.maintenanceMode}
-                  onChange={(e) => setSettings({ ...settings, maintenanceMode: e.target.checked })}
-                  className="w-4 h-4 text-rose-600 rounded"
-                />
-                <span className="text-xs font-bold text-slate-700">Maintenance Active</span>
-              </label>
             </div>
 
             {/* Save Buttons */}
