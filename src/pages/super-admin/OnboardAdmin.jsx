@@ -356,45 +356,59 @@ export default function OnboardAdmin() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Payment Status</label>
-                    <select
-                      value={formData.paymentStatus}
-                      onChange={(e) => setFormData({ ...formData, paymentStatus: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800"
-                    >
-                      <option value="PAID">PAID</option>
-                      <option value="PENDING">PENDING</option>
-                      <option value="FREE">FREE / TRIAL</option>
-                    </select>
+                {plans.find((p) => (p.id || p._id) === formData.planId)?.price === 0 ||
+                plans.find((p) => (p.id || p._id) === formData.planId)?.planType === 'FREE_TRIAL' ||
+                plans.find((p) => (p.id || p._id) === formData.planId)?.planType === 'FREE' ? (
+                  <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs font-bold text-emerald-900">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>Free Plan Selected (₹0): No payment collection required. Client will be placed on Free Trial.</span>
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full shrink-0">
+                      Free Trial
+                    </span>
                   </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Payment Status</label>
+                      <select
+                        value={formData.paymentStatus}
+                        onChange={(e) => setFormData({ ...formData, paymentStatus: e.target.value })}
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800"
+                      >
+                        <option value="PAID">PAID</option>
+                        <option value="PENDING">PENDING</option>
+                        <option value="FREE">FREE / TRIAL</option>
+                      </select>
+                    </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Payment Method</label>
-                    <select
-                      value={formData.paymentMethod}
-                      onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800"
-                    >
-                      <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
-                      <option value="CASH">Cash Collection</option>
-                      <option value="BANK_TRANSFER">Bank Transfer (NEFT/IMPS)</option>
-                      <option value="ONLINE">Online Card / NetBanking</option>
-                      <option value="MANUAL">Manual / Waived</option>
-                    </select>
-                  </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Payment Method</label>
+                      <select
+                        value={formData.paymentMethod}
+                        onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800"
+                      >
+                        <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
+                        <option value="CASH">Cash Collection</option>
+                        <option value="BANK_TRANSFER">Bank Transfer (NEFT/IMPS)</option>
+                        <option value="ONLINE">Online Card / NetBanking</option>
+                        <option value="MANUAL">Manual / Waived</option>
+                      </select>
+                    </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Amount Collected (₹)</label>
-                    <input
-                      type="number"
-                      value={formData.amountPaid}
-                      onChange={(e) => setFormData({ ...formData, amountPaid: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
-                    />
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Amount Collected (₹)</label>
+                      <input
+                        type="number"
+                        value={formData.amountPaid}
+                        onChange={(e) => setFormData({ ...formData, amountPaid: e.target.value })}
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>

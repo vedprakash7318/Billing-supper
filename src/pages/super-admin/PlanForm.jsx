@@ -208,7 +208,14 @@ export default function PlanForm() {
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">Plan Category</label>
                   <select
                     value={formData.planType}
-                    onChange={(e) => setFormData({ ...formData, planType: e.target.value })}
+                    onChange={(e) => {
+                      const newType = e.target.value;
+                      setFormData({
+                        ...formData,
+                        planType: newType,
+                        price: (newType === 'FREE_TRIAL' || newType === 'FREE') ? 0 : (formData.price || 999),
+                      });
+                    }}
                     className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800"
                   >
                     {PLAN_TYPES.map((p) => (
@@ -264,25 +271,43 @@ export default function PlanForm() {
               </p>
             </div>
 
-            {/* Price */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Price (₹ INR) *</label>
-              <div className="relative max-w-xs">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                  disabled={formData.planType === 'FREE_TRIAL' || formData.planType === 'FREE'}
-                  className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-500 disabled:bg-slate-100"
-                />
+            {/* Price Section */}
+            {formData.planType === 'FREE_TRIAL' || formData.planType === 'FREE' ? (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white font-black text-sm flex items-center justify-center shadow-sm">
+                    ₹0
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-emerald-950">
+                      {formData.planType === 'FREE_TRIAL' ? 'Free Trial Subscription Plan' : '100% Free Subscription Plan'}
+                    </h4>
+                    <p className="text-[11px] text-emerald-700 mt-0.5">
+                      No price entry needed. This plan is set to ₹0 and expires after the configured duration.
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-full">
+                  Free Plan (₹0)
+                </span>
               </div>
-              {(formData.planType === 'FREE_TRIAL' || formData.planType === 'FREE') && (
-                <p className="text-[11px] text-slate-500 mt-1">Free & Trial plans are automatically priced at ₹0.</p>
-              )}
-            </div>
+            ) : (
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Price (₹ INR) *</label>
+                <div className="relative max-w-xs">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">₹</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                    className="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* SMS & WhatsApp Messaging Support & Quotas */}
             <div className="p-5 bg-gradient-to-br from-slate-50 to-slate-100/70 rounded-2xl border border-slate-200/90 space-y-4">
