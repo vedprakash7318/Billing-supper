@@ -20,6 +20,12 @@ import {
   ShieldCheck,
   FileText,
   IndianRupee,
+  Gift,
+  Sparkles,
+  Smartphone,
+  MessageSquare,
+  X,
+  Plus,
 } from 'lucide-react';
 import { formatDurationLabel } from '../../constants';
 import api from '../../services/api';
@@ -34,6 +40,13 @@ export default function TenantDetails() {
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
+  // Free Booster Grant Modal state
+  const [boosterModalOpen, setBoosterModalOpen] = useState(false);
+  const [boosterType, setBoosterType] = useState('SMS');
+  const [boosterCredits, setBoosterCredits] = useState(100);
+  const [boosterNote, setBoosterNote] = useState('');
+  const [grantingBooster, setGrantingBooster] = useState(false);
+
   const fetchTenant = async () => {
     setLoading(true);
     try {
@@ -47,6 +60,32 @@ export default function TenantDetails() {
       setError(err.response?.data?.error || err.message || 'Error fetching client details');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGrantBooster = async (e) => {
+    e.preventDefault();
+    if (!boosterCredits || Number(boosterCredits) <= 0) {
+      toastError('Please enter a valid credit amount');
+      return;
+    }
+    setGrantingBooster(true);
+    try {
+      const res = await api.post(`/super-admin/tenants/${id}/grant-booster`, {
+        type: boosterType,
+        credits: Number(boosterCredits),
+        note: boosterNote.trim() || 'Complimentary booster gift by Super Admin',
+      });
+      if (res.data?.success) {
+        toastSuccess(res.data.message || `Granted ${boosterCredits} free ${boosterType} credits!`);
+        setBoosterModalOpen(false);
+        setBoosterNote('');
+        fetchTenant();
+      }
+    } catch (err) {
+      toastError(err.response?.data?.error || err.message || 'Failed to grant booster pack');
+    } finally {
+      setGrantingBooster(false);
     }
   };
 
@@ -147,6 +186,18 @@ export default function TenantDetails() {
           </Link>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={() => {
+                setBoosterType('SMS');
+                setBoosterCredits(100);
+                setBoosterModalOpen(true);
+              }}
+              className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold rounded-xl shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <Gift className="w-3.5 h-3.5" />
+              <span>Gift Free Booster Pack</span>
+            </button>
+
             <Link
               to={`/super-admin/tenants/${tenant.id || tenant._id}/extend`}
               className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm flex items-center gap-1.5 transition-all"
@@ -280,79 +331,144 @@ export default function TenantDetails() {
 
         {/* Detailed Panels */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Current Subscription Card */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-5 lg:col-span-1">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
-                <Layers className="w-4 h-4 text-indigo-600" />
-                <span>Subscription License</span>
+          <div className="space-y-6 lg:col-span-1">
+            {/* Current Subscription Card */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                  <Layers className="w-4 h-4 text-indigo-600" />
+                  <span>Subscription License</span>
+                </div>
+                <Link
+                  to={`/super-admin/tenants/${tenant.id || tenant._id}/extend`}
+                  className="text-xs font-bold text-indigo-600 hover:text-indigo-800"
+                >
+                  Change Plan
+                </Link>
               </div>
-              <Link
-                to={`/super-admin/tenants/${tenant.id || tenant._id}/extend`}
-                className="text-xs font-bold text-indigo-600 hover:text-indigo-800"
-              >
-                Change Plan
-              </Link>
+
+              {sub ? (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                      {sub.plan?.planType || 'PAID'}
+                    </span>
+                    <h3 className="text-base font-black text-slate-900">{sub.plan?.name || 'Active Plan'}</h3>
+                    <div className="flex items-baseline gap-1 text-slate-900 font-extrabold">
+                      <span className="text-xl">₹{sub.amountPaid || sub.plan?.price || 0}</span>
+                      <span className="text-xs text-slate-500 font-medium">
+                        / {formatDurationLabel(sub.plan?.durationType, sub.plan?.durationValue)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2.5 text-xs">
+                    <div className="flex justify-between py-1 border-b border-slate-100">
+                      <span className="text-slate-500">Plan Duration:</span>
+                      <span className="font-semibold text-slate-800">
+                        {formatDurationLabel(sub.plan?.durationType, sub.plan?.durationValue)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-100">
+                      <span className="text-slate-500">Start Date:</span>
+                      <span className="font-semibold text-slate-800">
+                        {startDate ? startDate.toLocaleDateString('en-IN') : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-100">
+                      <span className="text-slate-500">End Date (Expiry):</span>
+                      <span className="font-semibold text-slate-800">
+                        {endDate ? endDate.toLocaleDateString('en-IN') : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-100">
+                      <span className="text-slate-500">Payment Status:</span>
+                      <span className="font-bold text-emerald-700 uppercase">{sub.paymentStatus || 'PAID'}</span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-100">
+                      <span className="text-slate-500">Payment Method:</span>
+                      <span className="font-semibold text-slate-800">{sub.paymentMethod || 'MANUAL'}</span>
+                    </div>
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-500">Amount Collected:</span>
+                      <span className="font-bold text-slate-900">₹{sub.amountPaid || 0}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-2 text-emerald-800 text-xs font-semibold">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Full Permissions & Unlimited Access</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="py-8 text-center text-xs text-slate-400">
+                  No active subscription found. Click "Extend / Renew Plan" to assign one.
+                </div>
+              )}
             </div>
 
-            {sub ? (
-              <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
-                    {sub.plan?.planType || 'PAID'}
-                  </span>
-                  <h3 className="text-base font-black text-slate-900">{sub.plan?.name || 'Active Plan'}</h3>
-                  <div className="flex items-baseline gap-1 text-slate-900 font-extrabold">
-                    <span className="text-xl">₹{sub.amountPaid || sub.plan?.price || 0}</span>
-                    <span className="text-xs text-slate-500 font-medium">
-                      / {formatDurationLabel(sub.plan?.durationType, sub.plan?.durationValue)}
-                    </span>
+            {/* Message & Receipt Quotas Card */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <span>Message & Receipt Quotas</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBoosterType('SMS');
+                    setBoosterCredits(100);
+                    setBoosterModalOpen(true);
+                  }}
+                  className="text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Gift</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3.5 bg-indigo-50/60 rounded-2xl border border-indigo-100 space-y-1">
+                  <div className="flex items-center justify-between text-indigo-700">
+                    <Smartphone className="w-4 h-4" />
+                    <span className="text-[10px] font-bold uppercase">SMS</span>
+                  </div>
+                  <div className="text-xl font-black text-slate-900 font-mono">
+                    {tenant.smsBalance || 0}
+                  </div>
+                  <div className="text-[10px] text-slate-500">
+                    of {tenant.smsTotalCredited || 0} credited
                   </div>
                 </div>
 
-                <div className="space-y-2.5 text-xs">
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500">Plan Duration:</span>
-                    <span className="font-semibold text-slate-800">
-                      {formatDurationLabel(sub.plan?.durationType, sub.plan?.durationValue)}
-                    </span>
+                <div className="p-3.5 bg-emerald-50/60 rounded-2xl border border-emerald-100 space-y-1">
+                  <div className="flex items-center justify-between text-emerald-700">
+                    <MessageSquare className="w-4 h-4" />
+                    <span className="text-[10px] font-bold uppercase">WhatsApp</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500">Start Date:</span>
-                    <span className="font-semibold text-slate-800">
-                      {startDate ? startDate.toLocaleDateString('en-IN') : 'N/A'}
-                    </span>
+                  <div className="text-xl font-black text-slate-900 font-mono">
+                    {tenant.whatsAppBalance || 0}
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500">End Date (Expiry):</span>
-                    <span className="font-semibold text-slate-800">
-                      {endDate ? endDate.toLocaleDateString('en-IN') : 'N/A'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500">Payment Status:</span>
-                    <span className="font-bold text-emerald-700 uppercase">{sub.paymentStatus || 'PAID'}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500">Payment Method:</span>
-                    <span className="font-semibold text-slate-800">{sub.paymentMethod || 'MANUAL'}</span>
-                  </div>
-                  <div className="flex justify-between py-1">
-                    <span className="text-slate-500">Amount Collected:</span>
-                    <span className="font-bold text-slate-900">₹{sub.amountPaid || 0}</span>
+                  <div className="text-[10px] text-slate-500">
+                    of {tenant.whatsAppTotalCredited || 0} credited
                   </div>
                 </div>
+              </div>
 
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-2 text-emerald-800 text-xs font-semibold">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Full Permissions & Unlimited Access</span>
-                </div>
-              </div>
-            ) : (
-              <div className="py-8 text-center text-xs text-slate-400">
-                No active subscription found. Click "Extend / Renew Plan" to assign one.
-              </div>
-            )}
+              <button
+                type="button"
+                onClick={() => {
+                  setBoosterType('SMS');
+                  setBoosterCredits(250);
+                  setBoosterModalOpen(true);
+                }}
+                className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm shadow-amber-500/20 cursor-pointer"
+              >
+                <Gift className="w-3.5 h-3.5" />
+                <span>Gift Free Credits to this Store</span>
+              </button>
+            </div>
           </div>
 
           {/* Business & Admin Account Specs */}
@@ -494,6 +610,128 @@ export default function TenantDetails() {
             </div>
           )}
         </div>
+
+        {/* FREE BOOSTER GRANT MODAL */}
+        {boosterModalOpen && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2.5 rounded-2xl bg-amber-100 text-amber-700">
+                    <Gift className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900">Gift Free Booster Pack</h3>
+                    <p className="text-[11px] text-slate-500">Credit free quota directly to {tenant.businessName}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBoosterModalOpen(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleGrantBooster} className="space-y-4">
+                {/* Type Selection */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Booster Type *</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setBoosterType('SMS')}
+                      className={`p-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        boosterType === 'SMS'
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <Smartphone className="w-4 h-4" />
+                      <span>SMS Credits</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBoosterType('WHATSAPP')}
+                      className={`p-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        boosterType === 'WHATSAPP'
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/20'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      <span>WhatsApp Credits</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Credits amount */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Number of Credits *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={boosterCredits}
+                    onChange={(e) => setBoosterCredits(e.target.value)}
+                    placeholder="e.g. 100, 500, 1000"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold font-mono text-slate-900 focus:outline-none focus:border-amber-500"
+                  />
+                  {/* Preset quick pills */}
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <span className="text-[10px] text-slate-400 font-bold mr-1">Quick:</span>
+                    {[50, 100, 250, 500, 1000].map((amt) => (
+                      <button
+                        key={amt}
+                        type="button"
+                        onClick={() => setBoosterCredits(amt)}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border cursor-pointer ${
+                          Number(boosterCredits) === amt
+                            ? 'bg-amber-100 text-amber-800 border-amber-300'
+                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        +{amt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Note / Reason */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Reason / Note (Optional)</label>
+                  <input
+                    type="text"
+                    value={boosterNote}
+                    onChange={(e) => setBoosterNote(e.target.value)}
+                    placeholder="e.g. Free trial complimentary gift / customer support offer"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Submit button */}
+                <div className="pt-2 flex items-center justify-end gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setBoosterModalOpen(false)}
+                    className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={grantingBooster}
+                    className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-black shadow-md shadow-amber-500/20 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <Gift className="w-3.5 h-3.5" />
+                    <span>{grantingBooster ? 'Granting...' : `Grant ${boosterCredits} Free Credits`}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </SuperAdminLayout>
   );

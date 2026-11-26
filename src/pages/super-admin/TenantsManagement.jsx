@@ -15,6 +15,11 @@ import {
   Mail,
   Phone,
   Eye,
+  Gift,
+  Sparkles,
+  Smartphone,
+  MessageSquare,
+  X,
 } from 'lucide-react';
 import { TENANT_STATUSES } from '../../constants';
 import api from '../../services/api';
@@ -36,6 +41,46 @@ export default function TenantsManagement() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [plansList, setPlansList] = useState([]);
   const [selectedPlanId, setSelectedPlanId] = useState('ALL');
+
+  // Booster Modal State
+  const [boosterModalTenant, setBoosterModalTenant] = useState(null);
+  const [boosterType, setBoosterType] = useState('SMS');
+  const [boosterCredits, setBoosterCredits] = useState(100);
+  const [boosterNote, setBoosterNote] = useState('');
+  const [grantingBooster, setGrantingBooster] = useState(false);
+
+  const openBoosterModal = (tenant) => {
+    setBoosterModalTenant(tenant);
+    setBoosterType('SMS');
+    setBoosterCredits(100);
+    setBoosterNote('');
+  };
+
+  const handleGrantBooster = async (e) => {
+    e.preventDefault();
+    if (!boosterModalTenant) return;
+    if (!boosterCredits || Number(boosterCredits) <= 0) {
+      toastError('Please enter a valid credit amount');
+      return;
+    }
+    setGrantingBooster(true);
+    try {
+      const res = await api.post(`/super-admin/tenants/${boosterModalTenant.id || boosterModalTenant._id}/grant-booster`, {
+        type: boosterType,
+        credits: Number(boosterCredits),
+        note: boosterNote.trim() || 'Complimentary booster gift by Super Admin',
+      });
+      if (res.data?.success) {
+        toastSuccess(res.data.message || `Granted ${boosterCredits} free ${boosterType} credits!`);
+        setBoosterModalTenant(null);
+        fetchTenants();
+      }
+    } catch (err) {
+      toastError(err.response?.data?.error || err.message || 'Failed to grant booster pack');
+    } finally {
+      setGrantingBooster(false);
+    }
+  };
 
   useEffect(() => {
     api.get('/super-admin/plans?limit=100')
@@ -355,6 +400,15 @@ export default function TenantsManagement() {
 
                         <td className="py-4 px-5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => openBoosterModal(tenant)}
+                              className="p-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg border border-amber-200 transition-colors cursor-pointer"
+                              title="Gift Free SMS / WhatsApp Booster Credits"
+                            >
+                              <Gift className="w-3.5 h-3.5" />
+                            </button>
+
                             <Link
                               to={`/super-admin/tenants/${tenantId}`}
                               className="p-1.5 bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 rounded-lg transition-colors"
@@ -440,6 +494,128 @@ export default function TenantsManagement() {
             </div>
           </div>
         </div>
+
+        {/* FREE BOOSTER GRANT MODAL */}
+        {boosterModalTenant && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2.5 rounded-2xl bg-amber-100 text-amber-700">
+                    <Gift className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900">Gift Free Booster Pack</h3>
+                    <p className="text-[11px] text-slate-500">Credit free quota to {boosterModalTenant.businessName}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBoosterModalTenant(null)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleGrantBooster} className="space-y-4">
+                {/* Type Selection */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Booster Type *</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setBoosterType('SMS')}
+                      className={`p-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        boosterType === 'SMS'
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <Smartphone className="w-4 h-4" />
+                      <span>SMS Credits</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBoosterType('WHATSAPP')}
+                      className={`p-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        boosterType === 'WHATSAPP'
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/20'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      <span>WhatsApp Credits</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Credits amount */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Number of Credits *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={boosterCredits}
+                    onChange={(e) => setBoosterCredits(e.target.value)}
+                    placeholder="e.g. 100, 500, 1000"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold font-mono text-slate-900 focus:outline-none focus:border-amber-500"
+                  />
+                  {/* Preset quick pills */}
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <span className="text-[10px] text-slate-400 font-bold mr-1">Quick:</span>
+                    {[50, 100, 250, 500, 1000].map((amt) => (
+                      <button
+                        key={amt}
+                        type="button"
+                        onClick={() => setBoosterCredits(amt)}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border cursor-pointer ${
+                          Number(boosterCredits) === amt
+                            ? 'bg-amber-100 text-amber-800 border-amber-300'
+                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        +{amt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Note / Reason */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Reason / Note (Optional)</label>
+                  <input
+                    type="text"
+                    value={boosterNote}
+                    onChange={(e) => setBoosterNote(e.target.value)}
+                    placeholder="e.g. Complimentary gift / customer support offer"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Submit button */}
+                <div className="pt-2 flex items-center justify-end gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setBoosterModalTenant(null)}
+                    className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={grantingBooster}
+                    className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-black shadow-md shadow-amber-500/20 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <Gift className="w-3.5 h-3.5" />
+                    <span>{grantingBooster ? 'Granting...' : `Grant ${boosterCredits} Free Credits`}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </SuperAdminLayout>
   );

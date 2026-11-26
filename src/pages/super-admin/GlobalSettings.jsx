@@ -17,6 +17,8 @@ import { toastSuccess, toastError } from '../../utils/alerts';
 export default function GlobalSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [togglingSms, setTogglingSms] = useState(false);
+  const [togglingWhatsApp, setTogglingWhatsApp] = useState(false);
   const [settings, setSettings] = useState({
     isSmsGloballyEnabled: true,
     isWhatsAppGloballyEnabled: true,
@@ -42,6 +44,44 @@ export default function GlobalSettings() {
   useEffect(() => {
     fetchSettings();
   }, []);
+
+  const handleToggleSms = async () => {
+    const nextVal = !settings.isSmsGloballyEnabled;
+    setTogglingSms(true);
+    try {
+      const res = await api.put('/super-admin/settings', {
+        ...settings,
+        isSmsGloballyEnabled: nextVal,
+      });
+      if (res.data?.success) {
+        setSettings(res.data.data);
+        toastSuccess(nextVal ? '✅ SMS Gateway Online across all stores!' : '⚠️ SMS Gateway Temporarily Paused across all stores!');
+      }
+    } catch (err) {
+      toastError(err.response?.data?.error || 'Failed to toggle SMS');
+    } finally {
+      setTogglingSms(false);
+    }
+  };
+
+  const handleToggleWhatsApp = async () => {
+    const nextVal = !settings.isWhatsAppGloballyEnabled;
+    setTogglingWhatsApp(true);
+    try {
+      const res = await api.put('/super-admin/settings', {
+        ...settings,
+        isWhatsAppGloballyEnabled: nextVal,
+      });
+      if (res.data?.success) {
+        setSettings(res.data.data);
+        toastSuccess(nextVal ? '✅ WhatsApp Messaging Online across all stores!' : '⚠️ WhatsApp Messaging Temporarily Paused across all stores!');
+      }
+    } catch (err) {
+      toastError(err.response?.data?.error || 'Failed to toggle WhatsApp');
+    } finally {
+      setTogglingWhatsApp(false);
+    }
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -112,15 +152,22 @@ export default function GlobalSettings() {
                 {/* Toggle Button */}
                 <button
                   type="button"
-                  onClick={() => setSettings({ ...settings, isSmsGloballyEnabled: !settings.isSmsGloballyEnabled })}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
+                  disabled={togglingSms}
+                  onClick={handleToggleSms}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
                     settings.isSmsGloballyEnabled
                       ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
                       : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-600/20'
                   }`}
                 >
-                  <Power className="w-3.5 h-3.5" />
-                  <span>{settings.isSmsGloballyEnabled ? 'Temporarily Pause SMS' : 'Enable SMS Gateway'}</span>
+                  <Power className={`w-3.5 h-3.5 ${togglingSms ? 'animate-spin' : ''}`} />
+                  <span>
+                    {togglingSms
+                      ? 'Updating...'
+                      : settings.isSmsGloballyEnabled
+                      ? 'Temporarily Pause SMS'
+                      : 'Enable SMS Gateway'}
+                  </span>
                 </button>
               </div>
 
@@ -168,15 +215,22 @@ export default function GlobalSettings() {
                 {/* Toggle Button */}
                 <button
                   type="button"
-                  onClick={() => setSettings({ ...settings, isWhatsAppGloballyEnabled: !settings.isWhatsAppGloballyEnabled })}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
+                  disabled={togglingWhatsApp}
+                  onClick={handleToggleWhatsApp}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
                     settings.isWhatsAppGloballyEnabled
                       ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
                       : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-600/20'
                   }`}
                 >
-                  <Power className="w-3.5 h-3.5" />
-                  <span>{settings.isWhatsAppGloballyEnabled ? 'Temporarily Pause WhatsApp' : 'Enable WhatsApp Messaging'}</span>
+                  <Power className={`w-3.5 h-3.5 ${togglingWhatsApp ? 'animate-spin' : ''}`} />
+                  <span>
+                    {togglingWhatsApp
+                      ? 'Updating...'
+                      : settings.isWhatsAppGloballyEnabled
+                      ? 'Temporarily Pause WhatsApp'
+                      : 'Enable WhatsApp Messaging'}
+                  </span>
                 </button>
               </div>
 
