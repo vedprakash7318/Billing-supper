@@ -437,8 +437,9 @@ export default function TenantDetails() {
                   <div className="text-xl font-black text-slate-900 font-mono">
                     {tenant.smsBalance || 0}
                   </div>
-                  <div className="text-[10px] text-slate-500">
-                    of {tenant.smsTotalCredited || 0} credited
+                  <div className="text-[10px] text-slate-500 flex items-center justify-between">
+                    <span>Plan: {tenant.smsPlanBalance || 0}</span>
+                    <span className="font-bold text-indigo-700">Booster: {tenant.smsBoosterBalance || 0}</span>
                   </div>
                 </div>
 
@@ -450,8 +451,9 @@ export default function TenantDetails() {
                   <div className="text-xl font-black text-slate-900 font-mono">
                     {tenant.whatsAppBalance || 0}
                   </div>
-                  <div className="text-[10px] text-slate-500">
-                    of {tenant.whatsAppTotalCredited || 0} credited
+                  <div className="text-[10px] text-slate-500 flex items-center justify-between">
+                    <span>Plan: {tenant.whatsAppPlanBalance || 0}</span>
+                    <span className="font-bold text-emerald-700">Booster: {tenant.whatsAppBoosterBalance || 0}</span>
                   </div>
                 </div>
               </div>
