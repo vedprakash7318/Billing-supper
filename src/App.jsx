@@ -9,6 +9,8 @@ import OnboardAdmin from './pages/super-admin/OnboardAdmin';
 import EditTenant from './pages/super-admin/EditTenant';
 import ExtendSubscription from './pages/super-admin/ExtendSubscription';
 import TenantDetails from './pages/super-admin/TenantDetails';
+import GlobalSettings from './pages/super-admin/GlobalSettings';
+import AddOnPacksManagement from './pages/super-admin/AddOnPacksManagement';
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('saas_token');
@@ -94,6 +96,22 @@ export default function App() {
         element={
           <ProtectedRoute>
             <ExtendSubscription />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/super-admin/addons"
+        element={
+          <ProtectedRoute>
+            <AddOnPacksManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/super-admin/settings"
+        element={
+          <ProtectedRoute>
+            <GlobalSettings />
           </ProtectedRoute>
         }
       />

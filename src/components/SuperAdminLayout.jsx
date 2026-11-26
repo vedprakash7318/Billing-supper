@@ -10,6 +10,8 @@ import {
   ChevronRight,
   Menu,
   X,
+  Sliders,
+  Sparkles,
 } from 'lucide-react';
 
 export default function SuperAdminLayout({ children }) {
@@ -40,7 +42,7 @@ export default function SuperAdminLayout({ children }) {
       href: '/super-admin/plans',
       icon: Layers,
       active: location.pathname === '/super-admin/plans',
-      badge: 'Dynamic',
+      // badge: 'Dynamic',
     },
     {
       label: 'Admins & Tenants',
@@ -55,6 +57,19 @@ export default function SuperAdminLayout({ children }) {
       active: location.pathname === '/super-admin/tenants/new',
       highlight: true,
     },
+    {
+      label: 'SMS & WhatsApp Packs',
+      href: '/super-admin/addons',
+      icon: Sparkles,
+      active: location.pathname === '/super-admin/addons',
+      badge: 'Booster',
+    },
+    {
+      label: 'Global Settings',
+      href: '/super-admin/settings',
+      icon: Sliders,
+      active: location.pathname === '/super-admin/settings',
+    },
   ];
 
   const getPageTitle = () => {
@@ -62,6 +77,8 @@ export default function SuperAdminLayout({ children }) {
     if (location.pathname === '/super-admin/plans') return 'Dynamic Subscription Plans';
     if (location.pathname === '/super-admin/plans/new') return 'Create Subscription Plan';
     if (location.pathname.includes('/plans/') && location.pathname.endsWith('/edit')) return 'Edit Subscription Plan';
+    if (location.pathname === '/super-admin/addons') return 'SMS & WhatsApp Booster Packs';
+    if (location.pathname === '/super-admin/settings') return 'Global Platform Settings';
     if (location.pathname === '/super-admin/tenants') return 'Admins & Tenants Management';
     if (location.pathname === '/super-admin/tenants/new') return 'Create New Admin';
     if (location.pathname.includes('/tenants/') && location.pathname.endsWith('/edit')) return 'Edit Admin Details';
@@ -82,9 +99,8 @@ export default function SuperAdminLayout({ children }) {
 
       {/* Fixed Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 text-white flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 text-white flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         {/* Brand */}
         <div className="h-16 px-6 border-b border-slate-800 flex items-center justify-between shrink-0">
@@ -120,13 +136,12 @@ export default function SuperAdminLayout({ children }) {
                 key={item.href}
                 to={item.href}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  item.active
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                    : item.highlight
+                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${item.active
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                  : item.highlight
                     ? 'bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20 border border-indigo-500/30'
                     : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <Icon className={`w-5 h-5 ${item.active ? 'text-white' : 'text-slate-400'}`} />

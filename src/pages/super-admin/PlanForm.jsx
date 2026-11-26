@@ -33,6 +33,10 @@ export default function PlanForm() {
     currency: 'INR',
     isPopular: false,
     isActive: true,
+    isSmsEnabled: false,
+    freeSmsQuota: 0,
+    isWhatsAppEnabled: false,
+    freeWhatsAppQuota: 0,
   });
 
   useEffect(() => {
@@ -54,6 +58,10 @@ export default function PlanForm() {
             currency: plan.currency || 'INR',
             isPopular: Boolean(plan.isPopular),
             isActive: Boolean(plan.isActive),
+            isSmsEnabled: Boolean(plan.isSmsEnabled),
+            freeSmsQuota: Number(plan.freeSmsQuota) || 0,
+            isWhatsAppEnabled: Boolean(plan.isWhatsAppEnabled),
+            freeWhatsAppQuota: Number(plan.freeWhatsAppQuota) || 0,
           });
         }
       })
@@ -83,6 +91,10 @@ export default function PlanForm() {
         currency: formData.currency || 'INR',
         isPopular: Boolean(formData.isPopular),
         isActive: Boolean(formData.isActive),
+        isSmsEnabled: Boolean(formData.isSmsEnabled),
+        freeSmsQuota: Math.max(0, Number(formData.freeSmsQuota) || 0),
+        isWhatsAppEnabled: Boolean(formData.isWhatsAppEnabled),
+        freeWhatsAppQuota: Math.max(0, Number(formData.freeWhatsAppQuota) || 0),
         // All permissions / unlimited by default
         maxInvoices: -1,
         maxCustomers: -1,
@@ -270,6 +282,84 @@ export default function PlanForm() {
               {(formData.planType === 'FREE_TRIAL' || formData.planType === 'FREE') && (
                 <p className="text-[11px] text-slate-500 mt-1">Free & Trial plans are automatically priced at ₹0.</p>
               )}
+            </div>
+
+            {/* SMS & WhatsApp Messaging Support & Quotas */}
+            <div className="p-5 bg-gradient-to-br from-slate-50 to-slate-100/70 rounded-2xl border border-slate-200/90 space-y-4">
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">SMS & WhatsApp Messaging Support</h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Decide whether SMS and WhatsApp receipts/notifications are included, and specify free included message count.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* SMS Setting */}
+                <div className={`p-4 rounded-xl border transition-all ${formData.isSmsEnabled ? 'bg-white border-indigo-200 shadow-sm' : 'bg-slate-50/70 border-slate-200 opacity-80'}`}>
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isSmsEnabled}
+                      onChange={(e) => setFormData({ ...formData, isSmsEnabled: e.target.checked })}
+                      className="w-4 h-4 text-indigo-600 rounded"
+                    />
+                    <span className="text-xs font-bold text-slate-900">Include SMS Support</span>
+                  </label>
+                  <p className="text-[11px] text-slate-500 mt-1 pl-6.5">
+                    Allow store to send automated bill receipt SMS to customer mobile.
+                  </p>
+
+                  {formData.isSmsEnabled && (
+                    <div className="mt-3 pt-3 border-t border-slate-100">
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        Free SMS Quota (e.g. 400 SMS)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={formData.freeSmsQuota}
+                        onChange={(e) => setFormData({ ...formData, freeSmsQuota: Math.max(0, Number(e.target.value) || 0) })}
+                        placeholder="400"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-500"
+                      />
+                      <span className="text-[10px] text-slate-400 mt-1 block">Credited to store upon plan activation.</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* WhatsApp Setting */}
+                <div className={`p-4 rounded-xl border transition-all ${formData.isWhatsAppEnabled ? 'bg-white border-emerald-200 shadow-sm' : 'bg-slate-50/70 border-slate-200 opacity-80'}`}>
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isWhatsAppEnabled}
+                      onChange={(e) => setFormData({ ...formData, isWhatsAppEnabled: e.target.checked })}
+                      className="w-4 h-4 text-emerald-600 rounded"
+                    />
+                    <span className="text-xs font-bold text-slate-900">Include WhatsApp Support</span>
+                  </label>
+                  <p className="text-[11px] text-slate-500 mt-1 pl-6.5">
+                    Allow store to send instant one-click WhatsApp digital receipts.
+                  </p>
+
+                  {formData.isWhatsAppEnabled && (
+                    <div className="mt-3 pt-3 border-t border-slate-100">
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                        Free WhatsApp Quota (e.g. 100 Messages)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={formData.freeWhatsAppQuota}
+                        onChange={(e) => setFormData({ ...formData, freeWhatsAppQuota: Math.max(0, Number(e.target.value) || 0) })}
+                        placeholder="100"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
+                      />
+                      <span className="text-[10px] text-slate-400 mt-1 block">Credited to store upon plan activation.</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Toggles */}
